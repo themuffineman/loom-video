@@ -44,7 +44,6 @@ function runRender(props) {
         shell: true,
       }
     );
-    // console.log("Props are --> ", props);
 
     child.stdout.on("data", (data) => console.log(`stdout: ${data}`));
     child.stderr.on("data", (data) => console.error(`stderr: ${data}`));
@@ -69,8 +68,10 @@ async function create_full_video(face_video_payload, screen_video_payload) {
 
     // Read and upload final video
     const videoBuffer = fs.readFileSync(outputPath);
+    const videoBase64 = videoBuffer.toString("base64");
+
     const final_video = await uploadImages({
-      payload: videoBuffer,
+      payload: videoBase64,
       userId: `${new Date().toDateString()}`,
     });
 
@@ -138,6 +139,7 @@ app.post("/record", async (req, res) => {
 
   ffmpeg.on("close", async (code) => {
     console.log(`FFmpeg exited with code ${code}`);
+    await browser.close();
 
     try {
       // Ensure videos dir exists
@@ -152,16 +154,17 @@ app.post("/record", async (req, res) => {
 
       // 4. Read file as Buffer
       const videoBuffer = fs.readFileSync(dest);
+      const videoBase64 = videoBuffer.toString("base64");
 
       // 5. Upload via your createVideo function
       const uploadedVideo = await uploadImages({
-        payload: videoBuffer,
+        payload: videoBase64,
         userId: `${new Date().toDateString()}`,
       });
+      console.log("Uploaded vide url 1: ", uploadedVideo);
 
       const finishedVideo = await create_full_video(faceVideo, uploadedVideo);
-      // 6. Respond with uploaded video result
-      res.json({ success: true, video: finishedVideo });
+      return res.json({ success: true, video: finishedVideo });
     } catch (err) {
       console.error("Error processing video:", err);
       res.status(500).send("Failed to process video");
