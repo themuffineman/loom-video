@@ -87,89 +87,82 @@ app.post("/record", async (req, res) => {
   const body = req.body;
   const duration = body?.duration || 30; // seconds
   const websiteUrl = body?.website_url || "https://google.com";
-  const fileName = `recording-${Date.now()}.mp4`;
   const faceVideo = body?.face_video;
-  const output = path.join(__dirname, fileName);
 
-  // 1. Launch browser
-  const browser = await chromium.launch({ headless: false });
-  const context = await browser.newContext();
+  const framesDir = path.join(__dirname, "temp_screenshots");
+  const videosDir = path.join(__dirname, "videos");
+  const videoFileName = `recording-${Date.now()}.mp4`;
+  const videoFile = path.join(videosDir, videoFileName);
+
+  const fps = 10;
+  const interval = 1000 / fps;
+
+  // Ensure directories exist
+  if (!fs.existsSync(framesDir)) fs.mkdirSync(framesDir, { recursive: true });
+  if (!fs.existsSync(videosDir)) fs.mkdirSync(videosDir, { recursive: true });
+
+  // Launch browser
+  const browser = await chromium.launch({ headless: true });
+  const context = await browser.newContext({
+    viewport: { width: 1920, height: 1200 },
+  });
   const page = await context.newPage();
-  await page.goto(websiteUrl);
 
-  // 2. Build FFmpeg args
-  const ffmpegArgs =
-    process.platform === "win32"
-      ? [
-          "-y",
-          "-f",
-          "gdigrab",
-          "-framerate",
-          "30",
-          "-i",
-          "desktop",
-          "-c:v",
-          "libx264",
-          "-preset",
-          "veryfast",
-          "-pix_fmt",
-          "yuv420p",
-          "-t",
-          duration.toString(),
-          output,
-        ]
-      : [
-          "-y",
-          "-f",
-          "x11grab",
-          "-r",
-          "30",
-          "-s",
-          "1280x720",
-          "-i",
-          ":99.0",
-          "-t",
-          duration.toString(),
-          output,
-        ];
+  // Navigate and wait for load
+  await page.goto(websiteUrl, { waitUntil: "networkidle" });
 
-  // 3. Run FFmpeg
+  // Capture frames
+  const totalFrames = duration * fps;
+  for (let i = 0; i < totalFrames; i++) {
+    const framePath = path.join(
+      framesDir,
+      `frame-${String(i).padStart(5, "0")}.png`
+    );
+    await page.screenshot({ path: framePath });
+    await new Promise((r) => setTimeout(r, interval));
+  }
+
+  await browser.close();
+
+  // FFmpeg command
+  const ffmpegArgs = [
+    "-y",
+    "-r",
+    String(fps),
+    "-i",
+    path.join(framesDir, "frame-%05d.png"),
+    "-c:v",
+    "libx264",
+    "-pix_fmt",
+    "yuv420p",
+    videoFile,
+  ];
+
   const ffmpeg = spawn("ffmpeg", ffmpegArgs);
-  ffmpeg.stderr.on("data", (d) => console.log("FFmpeg:", d.toString()));
+  ffmpeg.stderr.on("data", (d) => console.log("ffmpeg:", d.toString()));
 
   ffmpeg.on("close", async (code) => {
-    console.log(`FFmpeg exited with code ${code}`);
-    await browser.close();
-
     try {
-      // Ensure videos dir exists
-      const videoDir = path.join(__dirname, "videos");
-      if (!fs.existsSync(videoDir)) {
-        fs.mkdirSync(videoDir);
-      }
+      // Clean up frames
+      fs.rmSync(framesDir, { recursive: true, force: true });
 
-      const dest = path.join(videoDir, path.basename(output));
-      fs.renameSync(output, dest);
-      console.log("File moved successfully:", dest);
+      console.log("Video created:", videoFile);
 
-      // 4. Read file as Buffer
-      const videoBuffer = fs.readFileSync(dest);
+      // Read file and encode
+      const videoBuffer = fs.readFileSync(videoFile);
       const videoBase64 = videoBuffer.toString("base64");
 
-      // 5. Upload via your createVideo function
+      // Upload
       const uploadedVideo = await uploadImages({
         payload: videoBase64,
         userId: `${new Date().toDateString()}`,
       });
-      console.log("Uploaded vide url 1: ", uploadedVideo);
 
       const finishedVideo = await create_full_video(faceVideo, uploadedVideo);
-      return res.json({ success: true, video: finishedVideo });
+      res.status(200).send({ success: true, video: finishedVideo });
     } catch (err) {
       console.error("Error processing video:", err);
-      res.status(500).send("Failed to process video");
-    } finally {
-      await browser.close();
+      res.status(500).send(`Failed to process video: \n${err}`);
     }
   });
 });

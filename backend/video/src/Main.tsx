@@ -38,7 +38,7 @@ const VideoEmbed: React.FC<{ screen: string; face: string }> = ({
           src={face}
         />
       </div>
-      <div className="flex items-center scale-[2] p-2 px-4 shadow-2xl gap-2 absolute bottom-[200px] left-[680px] bg-white rounded-full w-max">
+      <div className="flex items-center scale-[2] p-2 px-4 shadow-2xl gap-2 absolute bottom-[200px] left-[680px] bg-white rounded-full border w-max">
         <div className="flex items-center justify-center">
           <svg
             xmlns="http://www.w3.org/2000/svg"
