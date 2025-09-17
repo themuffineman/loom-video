@@ -31,9 +31,10 @@ const VideoEmbed: React.FC<{ screen: string; face: string }> = ({
   const displayMinutes = String(minutes).padStart(2, "0");
   return (
     <div className="w-full h-full bg-white relative">
-      <OffthreadVideo src={screen} />
+      <OffthreadVideo delayRenderTimeoutInMilliseconds={60000} src={screen} />
       <div className="absolute overflow-hidden size-[400px] rounded-full bottom-5 left-5">
         <OffthreadVideo
+          delayRenderTimeoutInMilliseconds={60000}
           className=" size-full rounded-full object-cover"
           src={face}
         />
