@@ -7,6 +7,7 @@ import { parseMedia } from "@remotion/media-parser";
 
 export const RemotionRoot: React.FC = () => {
   const props: { screen: string; face: string } = getInputProps();
+  console.log("Input props:", props);
   return (
     <>
       <Composition
