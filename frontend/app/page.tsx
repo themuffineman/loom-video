@@ -66,35 +66,6 @@ export default function LandingPage() {
     setProgress(0);
   };
 
-  const getDashboardContent = () => {
-    switch (activeCard) {
-      case 0:
-        return (
-          <div className="text-[#828387] text-sm">
-            Customer Subscription Status and Details
-          </div>
-        );
-      case 1:
-        return (
-          <div className="text-[#828387] text-sm">
-            Analytics Dashboard - Real-time Insights
-          </div>
-        );
-      case 2:
-        return (
-          <div className="text-[#828387] text-sm">
-            Data Visualization - Charts and Metrics
-          </div>
-        );
-      default:
-        return (
-          <div className="text-[#828387] text-sm">
-            Customer Subscription Status and Details
-          </div>
-        );
-    }
-  };
-
   return (
     <div className="w-full min-h-screen relative bg-[#F7F5F3] overflow-x-hidden flex flex-col justify-start items-center">
       <div className="relative flex flex-col justify-start items-center w-full">
@@ -244,14 +215,14 @@ export default function LandingPage() {
                 </div>
               </div>
 
-              <div className="self-stretch border-t border-[#E0DEDB] border-b border-[#E0DEDB] flex justify-center items-start">
+              <div className="self-stretch border-t border-b border-[#E0DEDB] flex justify-center items-start">
                 <div className="w-4 sm:w-6 md:w-8 lg:w-12 self-stretch relative overflow-hidden">
                   {/* Left decorative pattern */}
                   <div className="w-[120px] sm:w-[140px] md:w-[162px] left-[-40px] sm:left-[-50px] md:left-[-58px] top-[-120px] absolute flex flex-col justify-start items-start">
                     {Array.from({ length: 50 }).map((_, i) => (
                       <div
                         key={i}
-                        className="self-stretch h-3 sm:h-4 rotate-[-45deg] origin-top-left outline outline-[0.5px] outline-[rgba(3,7,18,0.08)] outline-offset-[-0.25px]"
+                        className="self-stretch h-3 sm:h-4 rotate-[-45deg] origin-top-left  outline-[0.5px] outline-[rgba(3,7,18,0.08)] outline-offset-[-0.25px]"
                       ></div>
                     ))}
                   </div>
@@ -288,7 +259,7 @@ export default function LandingPage() {
                     {Array.from({ length: 50 }).map((_, i) => (
                       <div
                         key={i}
-                        className="self-stretch h-3 sm:h-4 rotate-[-45deg] origin-top-left outline outline-[0.5px] outline-[rgba(3,7,18,0.08)] outline-offset-[-0.25px]"
+                        className="self-stretch h-3 sm:h-4 rotate-[-45deg] origin-top-left outline-[0.5px] outline-[rgba(3,7,18,0.08)] outline-offset-[-0.25px]"
                       ></div>
                     ))}
                   </div>
